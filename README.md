@@ -1,259 +1,150 @@
 # ☁️ aLCloud — Локальное облачное хранилище
 
-Безсерверная архитектура с прямым подключением к облачным провайдерам. Все данные и токены хранятся локально на вашем устройстве.
-
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
-![React](https://img.shields.io/badge/React-19-blue?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38bdf8?logo=tailwindcss)
-![Electron](https://img.shields.io/badge/Electron-41-47848f?logo=electron)
+Безсерверная архитектура с прямым подключением к облачным провайдерам.
+Десктопное приложение на Python + CustomTkinter.
 
 ---
 
 ## Возможности
 
 - 🌐 **5 облачных провайдеров**: Google Drive, Telegram, Яндекс.Диск, Mail.ru Cloud, GitHub
-- 🔐 **Безсерверная авторизация**: OAuth 2.0 с PKCE — токены только на вашем устройстве
-- 📁 **Единый интерфейс**: один файловый менеджер для всех провайдеров
-- 🔍 **Универсальный поиск**: поиск файлов по всем подключённым хранилищам
-- 🎨 **Grid / List виды**: удобное отображение файлов в двух режимах
-- 🌓 **Тёмная / светлая тема**: автоматическое переключение
-- 📤 **Drag & Drop**: загрузка файлов перетаскиванием
-- 💾 **Локальная база данных**: SQLite для индексации и кеширования
-- 🖥️ **Десктоп-версия**: .exe для Windows, AppImage для Linux, .dmg для macOS
+- 🔐 **Подключение в интерфейсе**: OAuth-авторизация прямо из приложения — без конфигурационных файлов
+- 📁 **Единый файловый менеджер**: просмотр, загрузка, скачивание, удаление файлов
+- 🔍 **Поиск**: по всем файлам текущего провайдера
+- 🎨 **3 темы оформления**: светлая, тёмная, кастомная (RGB)
+- 💾 **Локальная база данных**: SQLite — все токены и настройки хранятся на устройстве
+- 🖥️ **Компиляция в .exe**: один файл для Windows через PyInstaller
 
 ---
 
 ## Поддерживаемые провайдеры
 
-| Провайдер | Метод | Макс. файл |
-|-----------|-------|-----------|
+| Провайдер | Метод подключения | Макс. файл |
+|-----------|-------------------|-----------|
 | Google Drive | OAuth 2.0 + Drive API v3 | 5 ТБ |
-| Telegram | MTProto (gram.js) | 2 ГБ |
+| Telegram | Телефон + код подтверждения | 2 ГБ |
 | Яндекс.Диск | OAuth 2.0 + REST API | 50 ГБ |
 | Mail.ru Cloud | OAuth 2.0 + Cloud API | 2 ГБ |
 | GitHub | OAuth 2.0 + REST API | 100 МБ |
 
 ---
 
-## ⬇️ Готовые сборки
+## Быстрый старт (Windows)
 
-Скомпилированные файлы доступны в папке **`electron-dist/`** после сборки:
+### Вариант 1: Запуск из исходников
 
-| Платформа | Формат | Команда сборки | Результат |
-|-----------|--------|---------------|-----------|
-| **Windows** | `.exe` (NSIS installer) | `bun run build:win` | `electron-dist/aLCloud Setup 1.0.0.exe` |
-| **Linux** | `.AppImage` | `bun run build:linux` | `electron-dist/aLCloud-1.0.0.AppImage` |
-| **macOS** | `.dmg` | `bun run build:mac` | `electron-dist/aLCloud-1.0.0.dmg` |
-
-### Как запустить готовый файл
-
-**Windows**: просто запустите `aLCloud Setup 1.0.0.exe` — появится установщик. Приложение запустится автоматически после установки.
-
-**Linux**:
-```bash
-chmod +x aLCloud-1.0.0.AppImage
-./aLCloud-1.0.0.AppImage
-```
-
-**macOS**: откройте `.dmg` и перетащите aLCloud в Applications.
-
----
-
-## 🚀 Сборка из исходников
-
-### Требования
-
-- **Node.js** 18+ (рекомендуется 20+)
-- **Bun** (рекомендуется) или npm
-- **Git**
-- Для десктоп-сборки: **Python 3**, **make**, **g++** (Linux) или **Visual Studio Build Tools** (Windows)
-
-### 1. Клонировать и установить
-
-```bash
+```batch
 git clone https://github.com/vfyov6621-coder/aLCloud.git
 cd aLCloud
-bun install
+pip install -r requirements.txt
+python main.py
 ```
 
-### 2. Настроить переменные окружения
+### Вариант 2: Скомпилировать .exe
 
-```bash
-cp .env.example .env
+```batch
+git clone https://github.com/vfyov6621-coder/aLCloud.git
+cd aLCloud
+build.bat
 ```
 
-Отредактируйте `.env` — укажите OAuth-клиенты провайдеров:
-
-```env
-DATABASE_URL="file:./db/custom.db"
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-GITHUB_CLIENT_ID=""
-GITHUB_CLIENT_SECRET=""
-YANDEX_CLIENT_ID=""
-YANDEX_CLIENT_SECRET=""
-MAILRU_CLIENT_ID=""
-MAILRU_CLIENT_SECRET=""
-TELEGRAM_API_ID=""
-TELEGRAM_API_HASH=""
-```
-
-> 💡 Credentials можно оставить пустыми — приложение работает в демо-режиме.
-
-### 3. Инициализировать базу данных
-
-```bash
-bun run db:push
-```
+Готовый файл: **`dist\aLCloud.exe`**
 
 ---
 
-## 📋 Все скрипты
+## Как пользоваться
 
-### Веб-версия
+### 1. Подключить провайдер
 
-| Команда | Описание |
-|---------|----------|
-| `bun run dev` | Запуск в режиме разработки → http://localhost:3000 |
-| `bun run build` | Сборка Next.js для production |
-| `bun run start` | Запуск production-сервера |
+1. Нажмите **"+ Добавить провайдер"** в левой панели
+2. Выберите провайдер из выпадающего списка
+3. Введите **Client ID** и **Client Secret** (получите на сайте провайдера)
+4. Нажмите **"Подключить"** — откроется браузер для OAuth-авторизации
+5. После подтверждения в браузере провайдер появится в списке
 
-### Десктоп-версия (Electron)
+> Для Telegram: введите API ID, API Hash (с my.telegram.org) и номер телефона.
 
-| Команда | Описание |
-|---------|----------|
-| `bun run build:win` | Полная сборка → `electron-dist/aLCloud Setup 1.0.0.exe` |
-| `bun run build:linux` | Полная сборка → `electron-dist/aLCloud-1.0.0.AppImage` |
-| `bun run build:mac` | Полная сборка → `electron-dist/aLCloud-1.0.0.dmg` |
-| `bun run electron:build` | Сборка только обёртки (без пересборки Next.js) |
-| `bun run electron:dev` | Запуск Electron в режиме разработки |
+### 2. Работа с файлами
 
-### База данных
+- **Просмотр**: выберите провайдер в левой панели — файлы появятся справа
+- **Навигация**: двойной клик по папке для входа, кнопка ← для возврата
+- **Загрузка**: кнопка **"⬆ Загрузить"** в верхней панели
+- **Скачивание**: правый клик по файлу → **"⬇ Скачать"**
+- **Удаление**: правый клик по файлу → **"🗑 Удалить"**
+- **Поиск**: введите запрос в строку поиска и нажмите **"Найти"**
+- **Переключение вида**: кнопка ☰/▦ в панели навигации (список/сетка)
 
-| Команда | Описание |
-|---------|----------|
-| `bun run db:push` | Применить схему БД |
-| `bun run db:generate` | Сгенерировать Prisma-клиент |
-| `bun run db:migrate` | Выполнить миграции |
+### 3. Настройка темы
 
----
-
-## 🖥️ Как собрать .exe (подробно)
-
-### Автоматическая сборка (одна команда)
-
-На **Windows** (в PowerShell или CMD):
-
-```bash
-bun install
-bun run db:push
-bun run build:win
-```
-
-Результат: **`electron-dist/aLCloud Setup 1.0.0.exe`** — полноценный NSIS-установщик (~200 МБ).
-
-### Пошаговая сборка
-
-```bash
-# 1. Собрать Next.js
-bun run build
-
-# 2. Установить Electron (если ещё не установлен)
-bun add -d electron electron-builder
-
-# 3. Собрать .exe
-bun run electron:build --win
-```
-
-### Структура electron-dist/
-
-```
-electron-dist/
-├── aLCloud Setup 1.0.0.exe    # Windows-установщик
-├── aLCloud-1.0.0.AppImage     # Linux AppImage
-├── aLCloud-1.0.0.dmg          # macOS DMG
-├── app/                        # Встроенный Next.js standalone-сервер
-│   ├── server.js               # Точка входа сервера
-│   ├── .next/                  # Скомпилированное приложение
-│   ├── node_modules/           # Зависимости сервера
-│   ├── public/                 # Статические файлы
-│   ├── prisma/                 # Схема и миграции БД
-│   └── db/                     # Папка для SQLite базы
-├── linux-unpacked/             # Распакованная Linux-версия
-├── builder-debug.yml           # Лог сборки
-└── latest-linux.yml            # Метаданные
-```
-
-### Как это работает
-
-1. `bun run build` собирает Next.js в **standalone**-режиме — получается автономный Node.js сервер
-2. `electron-dist/app/` содержит этот сервер + статика + Prisma
-3. `electron-builder` упаковывает Electron + сервер в единый установщик
-4. При запуске .exe Electron автоматически стартует встроенный сервер и открывает окно
-5. База данных SQLite создаётся в пользовательской папке (`%APPDATA%/aLCloud/`)
+1. Нажмите **"⚙ Настройки"** в верхней панели
+2. Выберите тему: **Светлая**, **Тёмная** или **Кастомная**
+3. Для кастомной темы укажите RGB-значения для:
+   - **Фон** — основной цвет фона
+   - **Текст** — цвет текста
+   - **Акцент** — цвет кнопок и активных элементов
+   - **Рамка** — цвет границ кнопок и полей ввода
+4. Нажмите **"👁 Предпросмотр"** для проверки
+5. Нажмите **"Сохранить"** для применения
 
 ---
 
-## 📁 Структура проекта
+## Структура проекта
 
 ```
 aLCloud/
-├── src/
-│   ├── app/
-│   │   ├── api/                    # API маршруты
-│   │   │   ├── providers/          # CRUD провайдеров, OAuth
-│   │   │   └── files/              # Универсальный поиск
-│   │   ├── layout.tsx              # Корневой layout
-│   │   └── page.tsx                # Главная страница
-│   ├── components/
-│   │   ├── file-browser/           # Файловый менеджер
-│   │   ├── sidebar/                # Боковая панель
-│   │   ├── provider/               # Диалоги подключения
-│   │   ├── search/                 # Поиск
-│   │   ├── file-info/              # Информация о файле
-│   │   ├── theme/                  # Переключатель темы
-│   │   └── ui/                     # shadcn/ui компоненты
-│   └── lib/
-│       ├── providers/              # Абстракция провайдеров
-│       │   ├── types.ts            # Интерфейс IProvider
-│       │   ├── base-provider.ts    # Базовый класс
-│       │   ├── google-drive.ts
-│       │   ├── telegram.ts
-│       │   ├── yandex-disk.ts
-│       │   ├── mailru-cloud.ts
-│       │   ├── github.ts
-│       │   └── index.ts            # Реестр провайдеров
-│       ├── store.ts                # Zustand store
-│       └── db.ts                   # Prisma клиент
-├── electron/                       # Electron обёртка
-│   ├── main.js                     # Точка входа Electron
-│   └── preload.js                  # Preload-скрипт
-├── electron-dist/                  # ⬅️ Готовые сборки (.exe, .AppImage, .dmg)
-├── prisma/
-│   └── schema.prisma               # Схема базы данных
-├── public/                         # Статические файлы
-└── package.json
+├── main.py                     # Точка входа
+├── requirements.txt            # Зависимости (customtkinter, requests)
+├── build.bat                   # Скрипт сборки .exe (PyInstaller)
+├── aLCloud/
+│   ├── __init__.py
+│   ├── app.py                  # Контроллер приложения
+│   ├── database.py             # SQLite (токены, настройки, кеш)
+│   ├── theme.py                # Менеджер тем (светлая/тёмная/RGB)
+│   ├── oauth.py                # OAuth 2.0 flow (локальный HTTP-сервер)
+│   ├── providers.py            # 5 провайдеров (Google, Telegram, Yandex, Mail, GitHub)
+│   └── ui/
+│       ├── __init__.py
+│       ├── main_window.py      # Главное окно
+│       ├── sidebar.py          # Боковая панель провайдеров
+│       ├── file_browser.py     # Файловый менеджер (список/сетка)
+│       ├── connect_dialog.py   # Диалог подключения OAuth
+│       ├── telegram_dialog.py  # Диалог подключения Telegram
+│       └── settings_dialog.py  # Диалог настроек (темы, провайдеры)
 ```
 
 ---
 
-## 🛠️ Технологии
+## Где хранятся данные
 
-| Компонент | Технология |
-|-----------|-----------|
-| Фреймворк | Next.js 16 (App Router) |
-| UI | React 19 + TypeScript 5 |
-| Компоненты | shadcn/ui + Lucide Icons |
-| Стилизация | Tailwind CSS 4 |
-| База данных | Prisma ORM + SQLite |
-| Состояние | Zustand |
-| Анимации | Framer Motion |
-| Drag & Drop | @dnd-kit |
-| Десктоп | Electron 41 + electron-builder |
+Все данные хранятся локально в папке пользователя:
+
+```
+%USERPROFILE%\.alcloud\
+├── alcloud.db              # SQLite база данных
+│   ├── providers           # Подключённые провайдеры и токены
+│   ├── settings            # Настройки (тема, кастомные цвета)
+│   └── file_cache          # Кеш файлов
+└── themes\
+    ├── alcloud_light.json  # Светлая тема
+    ├── alcloud_dark.json   # Тёмная тема
+    └── alcloud_custom.json # Кастомная тема
+```
 
 ---
 
-## 📄 Лицензия
+## Технологии
+
+| Компонент | Технология |
+|-----------|-----------|
+| Язык | Python 3.10+ |
+| GUI | CustomTkinter 5.2+ |
+| HTTP | requests |
+| База данных | SQLite (встроенная) |
+| OAuth | HTTP-сервер + браузер |
+| Упаковка | PyInstaller (один .exe файл) |
+
+---
+
+## Лицензия
 
 MIT
