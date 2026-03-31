@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ProviderConnection {
+  id             String   @id @default(cuid())
+  providerType   String   // google-drive, telegram, yandex-disk, mailru-cloud, github
+  displayName    String
+  accessToken    String?
+  refreshToken   String?
+  tokenExpiresAt DateTime?
+  isConnected    Boolean  @default(false)
+  accountEmail   String?
+  accountName    String?
+  avatarUrl      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  files     FileItem[]
+  syncLogs  SyncLog[]
+}
+
+model FileItem {
+  id            String   @id @default(cuid())
+  name          String
+  path          String   // full path including filename
+  parentId      String?
+  size          Int      @default(0) // bytes
+  mimeType      String?
+  type          String   @default("file") // "file" or "folder"
+  providerId    String
+  providerFileId String?
+  thumbnail     String?  // thumbnail URL or base64
+  lastModified  DateTime @default(now())
+  isStarred     Boolean  @default(false)
+  isShared      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  provider ProviderConnection @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
+model SyncLog {
+  id          String   @id @default(cuid())
+  providerId  String
+  action      String   // "sync", "upload", "download", "delete"
+  status      String   @default("pending") // "pending", "success", "error"
+  itemCount   Int      @default(0)
+  message     String?
+  createdAt   DateTime @default(now())
+
+  provider ProviderConnection @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
