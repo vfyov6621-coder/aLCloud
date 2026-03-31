@@ -47,9 +47,15 @@ class Sidebar(ctk.CTkFrame):
         bottom.pack_propagate(False)
 
         ctk.CTkButton(
-            bottom, text="+  Добавить провайдер", height=38,
+            bottom, text="  Браузер", height=36,
+            corner_radius=8, fg_color="transparent",
+            command=self._open_browser,
+        ).pack(fill="x", padx=8, pady=(8, 2))
+
+        ctk.CTkButton(
+            bottom, text="+  Добавить провайдер", height=36,
             corner_radius=8, command=self._open_connect,
-        ).pack(fill="x", padx=8, pady=(8, 12))
+        ).pack(fill="x", padx=8, pady=(2, 12))
 
     def _sep(self):
         sep_color = ctk.ThemeManager.theme.get("CTkFrame", {}).get("border_color", ["#333", "#333"])[1]
@@ -109,7 +115,11 @@ class Sidebar(ctk.CTkFrame):
             self._on_select(provider)
 
     def _open_connect(self):
-        # Find MainWindow and call _open_connect on it
         root = self.winfo_toplevel()
         if hasattr(root, "_open_connect"):
             root._open_connect()
+
+    def _open_browser(self):
+        root = self.winfo_toplevel()
+        if hasattr(root, "_open_browser"):
+            root._open_browser()

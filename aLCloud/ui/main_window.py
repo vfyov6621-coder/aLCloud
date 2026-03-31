@@ -6,6 +6,7 @@ from aLCloud.ui.sidebar import Sidebar
 from aLCloud.ui.file_browser import FileBrowser
 from aLCloud.ui.connect_panel import ConnectPanel
 from aLCloud.ui.settings_panel import SettingsPanel
+from aLCloud.ui.browser_panel import BrowserPanel
 
 
 class MainWindow(ctk.CTk):
@@ -75,7 +76,8 @@ class MainWindow(ctk.CTk):
 
         self.connect_panel = ConnectPanel(self.right_panel, on_done=self._panel_done)
         self.settings_panel = SettingsPanel(self.right_panel, on_done=self._panel_done)
-        # Both created but NOT packed — hidden initially
+        self.browser_panel = BrowserPanel(self.right_panel, on_done=self._panel_done)
+        # All created but NOT packed — hidden initially
 
     def _build_statusbar(self):
         self.statusbar = ctk.CTkFrame(self, height=28, corner_radius=0)
@@ -93,6 +95,7 @@ class MainWindow(ctk.CTk):
         self.file_browser.pack_forget()
         self.connect_panel.pack_forget()
         self.settings_panel.pack_forget()
+        self.browser_panel.pack_forget()
         panel.pack(fill="both", expand=True)
 
         # Toolbar: hide search+upload, show back
@@ -105,6 +108,7 @@ class MainWindow(ctk.CTk):
         """Restore file browser view."""
         self.connect_panel.pack_forget()
         self.settings_panel.pack_forget()
+        self.browser_panel.pack_forget()
         self.file_browser.pack(fill="both", expand=True)
 
         # Toolbar: show search+upload, hide back
@@ -122,6 +126,11 @@ class MainWindow(ctk.CTk):
         self.settings_panel.refresh()
         self._show_panel(self.settings_panel)
         self.status_label.configure(text="  Настройки")
+
+    def _open_browser(self):
+        self.browser_panel.open_url("https://www.google.com")
+        self._show_panel(self.browser_panel)
+        self.status_label.configure(text="  Браузер")
 
     def _panel_done(self):
         self._back_to_files()
