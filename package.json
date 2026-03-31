@@ -16,19 +16,25 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "electron:dev": "NODE_ENV=development electron .",
-    "electron:build": "electron-builder"
+    "electron:build": "electron-builder",
+    "build:win": "bun run build && mkdir -p electron-dist/app && cp -r .next/standalone/* electron-dist/app/ && cp -r public electron-dist/app/public && cp -r prisma electron-dist/app/prisma && mkdir -p electron-dist/app/db && npx electron-builder --win --publish never",
+    "build:linux": "bun run build && mkdir -p electron-dist/app && cp -r .next/standalone/* electron-dist/app/ && cp -r public electron-dist/app/public && cp -r prisma electron-dist/app/prisma && mkdir -p electron-dist/app/db && npx electron-builder --linux AppImage --publish never",
+    "build:mac": "bun run build && mkdir -p electron-dist/app && cp -r .next/standalone/* electron-dist/app/ && cp -r public electron-dist/app/public && cp -r prisma electron-dist/app/prisma && mkdir -p electron-dist/app/db && npx electron-builder --mac --publish never"
   },
   "build": {
     "appId": "com.alcloud.app",
     "productName": "aLCloud",
     "directories": {
-      "output": "dist"
+      "output": "electron-dist"
     },
     "files": [
-      "electron/**/*",
-      ".next/standalone/**/*",
-      "prisma/**/*",
-      "node_modules/.prisma/**/*"
+      "electron/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "electron-dist/app",
+        "to": "app"
+      }
     ],
     "win": {
       "target": [
@@ -53,7 +59,12 @@
       "icon": "public/logo.svg"
     },
     "linux": {
-      "target": ["AppImage", "deb"],
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
       "icon": "public/logo.svg"
     }
   },
@@ -130,6 +141,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "bun-types": "^1.3.4",
+    "electron": "^41.1.0",
+    "electron-builder": "^26.8.1",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
     "tailwindcss": "^4",

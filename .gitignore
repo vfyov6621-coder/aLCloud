@@ -48,5 +48,9 @@ test
 prompt
 
 server.log
+
+# Electron builds
+/electron-dist/
+
 # Skills directory
 /skills/

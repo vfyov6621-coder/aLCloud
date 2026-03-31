@@ -6,6 +6,7 @@
 ![React](https://img.shields.io/badge/React-19-blue?logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38bdf8?logo=tailwindcss)
+![Electron](https://img.shields.io/badge/Electron-41-47848f?logo=electron)
 
 ---
 
@@ -19,6 +20,7 @@
 - 🌓 **Тёмная / светлая тема**: автоматическое переключение
 - 📤 **Drag & Drop**: загрузка файлов перетаскиванием
 - 💾 **Локальная база данных**: SQLite для индексации и кеширования
+- 🖥️ **Десктоп-версия**: .exe для Windows, AppImage для Linux, .dmg для macOS
 
 ---
 
@@ -34,124 +36,162 @@
 
 ---
 
-## 🚀 Как запустить (веб-версия)
+## ⬇️ Готовые сборки
+
+Скомпилированные файлы доступны в папке **`electron-dist/`** после сборки:
+
+| Платформа | Формат | Команда сборки | Результат |
+|-----------|--------|---------------|-----------|
+| **Windows** | `.exe` (NSIS installer) | `bun run build:win` | `electron-dist/aLCloud Setup 1.0.0.exe` |
+| **Linux** | `.AppImage` | `bun run build:linux` | `electron-dist/aLCloud-1.0.0.AppImage` |
+| **macOS** | `.dmg` | `bun run build:mac` | `electron-dist/aLCloud-1.0.0.dmg` |
+
+### Как запустить готовый файл
+
+**Windows**: просто запустите `aLCloud Setup 1.0.0.exe` — появится установщик. Приложение запустится автоматически после установки.
+
+**Linux**:
+```bash
+chmod +x aLCloud-1.0.0.AppImage
+./aLCloud-1.0.0.AppImage
+```
+
+**macOS**: откройте `.dmg` и перетащите aLCloud в Applications.
+
+---
+
+## 🚀 Сборка из исходников
 
 ### Требования
 
 - **Node.js** 18+ (рекомендуется 20+)
-- **Bun** (рекомендуется) или npm/yarn
+- **Bun** (рекомендуется) или npm
 - **Git**
+- Для десктоп-сборки: **Python 3**, **make**, **g++** (Linux) или **Visual Studio Build Tools** (Windows)
 
-### 1. Клонировать репозиторий
+### 1. Клонировать и установить
 
 ```bash
 git clone https://github.com/vfyov6621-coder/aLCloud.git
 cd aLCloud
-```
-
-### 2. Установить зависимости
-
-```bash
 bun install
 ```
 
-> Если не используете Bun: `npm install`
-
-### 3. Настроить переменные окружения
+### 2. Настроить переменные окружения
 
 ```bash
 cp .env.example .env
 ```
 
-Отредактируйте `.env` — укажите данные для подключения провайдеров (OAuth-клиенты):
+Отредактируйте `.env` — укажите OAuth-клиенты провайдеров:
 
 ```env
-# База данных (SQLite)
 DATABASE_URL="file:./db/custom.db"
-
-# Google Drive
-GOOGLE_CLIENT_ID="your-google-client-id.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="your-google-client-secret"
-
-# GitHub
-GITHUB_CLIENT_ID="your-github-client-id"
-GITHUB_CLIENT_SECRET="your-github-client-secret"
-
-# Яндекс.Диск
-YANDEX_CLIENT_ID="your-yandex-client-id"
-YANDEX_CLIENT_SECRET="your-yandex-client-secret"
-
-# Mail.ru Cloud
-MAILRU_CLIENT_ID="your-mailru-client-id"
-MAILRU_CLIENT_SECRET="your-mailru-client-secret"
-
-# Telegram
-TELEGRAM_API_ID="your-telegram-api-id"
-TELEGRAM_API_HASH="your-telegram-api-hash"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+GITHUB_CLIENT_ID=""
+GITHUB_CLIENT_SECRET=""
+YANDEX_CLIENT_ID=""
+YANDEX_CLIENT_SECRET=""
+MAILRU_CLIENT_ID=""
+MAILRU_CLIENT_SECRET=""
+TELEGRAM_API_ID=""
+TELEGRAM_API_HASH=""
 ```
 
-> 💡 Для быстрого старта можно оставить credentials пустыми — приложение будет работать в демонстрационном режиме.
+> 💡 Credentials можно оставить пустыми — приложение работает в демо-режиме.
 
-### 4. Инициализировать базу данных
+### 3. Инициализировать базу данных
 
 ```bash
 bun run db:push
 ```
 
-### 5. Запустить в режиме разработки
+---
 
-```bash
-bun run dev
-```
+## 📋 Все скрипты
 
-Приложение будет доступно по адресу: **http://localhost:3000**
+### Веб-версия
+
+| Команда | Описание |
+|---------|----------|
+| `bun run dev` | Запуск в режиме разработки → http://localhost:3000 |
+| `bun run build` | Сборка Next.js для production |
+| `bun run start` | Запуск production-сервера |
+
+### Десктоп-версия (Electron)
+
+| Команда | Описание |
+|---------|----------|
+| `bun run build:win` | Полная сборка → `electron-dist/aLCloud Setup 1.0.0.exe` |
+| `bun run build:linux` | Полная сборка → `electron-dist/aLCloud-1.0.0.AppImage` |
+| `bun run build:mac` | Полная сборка → `electron-dist/aLCloud-1.0.0.dmg` |
+| `bun run electron:build` | Сборка только обёртки (без пересборки Next.js) |
+| `bun run electron:dev` | Запуск Electron в режиме разработки |
+
+### База данных
+
+| Команда | Описание |
+|---------|----------|
+| `bun run db:push` | Применить схему БД |
+| `bun run db:generate` | Сгенерировать Prisma-клиент |
+| `bun run db:migrate` | Выполнить миграции |
 
 ---
 
-## 🖥️ Как сделать .exe (десктоп-версия)
+## 🖥️ Как собрать .exe (подробно)
 
-### Вариант A: Electron (рекомендуется для Windows)
+### Автоматическая сборка (одна команда)
 
-#### Установка Electron
+На **Windows** (в PowerShell или CMD):
 
 ```bash
-bun add -d electron electron-builder
+bun install
+bun run db:push
+bun run build:win
 ```
 
-#### Сборка .exe
+Результат: **`electron-dist/aLCloud Setup 1.0.0.exe`** — полноценный NSIS-установщик (~200 МБ).
+
+### Пошаговая сборка
 
 ```bash
-# 1. Собрать Next.js приложение
+# 1. Собрать Next.js
 bun run build
 
-# 2. Упаковать в Electron .exe
-bun run electron:build
+# 2. Установить Electron (если ещё не установлен)
+bun add -d electron electron-builder
+
+# 3. Собрать .exe
+bun run electron:build --win
 ```
 
-Готовый установщик появится в папке `dist/`.
+### Структура electron-dist/
 
-#### Для разработки (Electron)
-
-```bash
-bun run electron:dev
+```
+electron-dist/
+├── aLCloud Setup 1.0.0.exe    # Windows-установщик
+├── aLCloud-1.0.0.AppImage     # Linux AppImage
+├── aLCloud-1.0.0.dmg          # macOS DMG
+├── app/                        # Встроенный Next.js standalone-сервер
+│   ├── server.js               # Точка входа сервера
+│   ├── .next/                  # Скомпилированное приложение
+│   ├── node_modules/           # Зависимости сервера
+│   ├── public/                 # Статические файлы
+│   ├── prisma/                 # Схема и миграции БД
+│   └── db/                     # Папка для SQLite базы
+├── linux-unpacked/             # Распакованная Linux-версия
+├── builder-debug.yml           # Лог сборки
+└── latest-linux.yml            # Метаданные
 ```
 
-### Вариант B: Tauri (легче, быстрее)
+### Как это работает
 
-Tauri создаёт значительно меньшие .exe файлы за счёт использования системного WebView вместо встроенного Chromium.
-
-```bash
-# Установка Tauri CLI
-cargo install tauri-cli
-
-# Инициализация Tauri
-bunx tauri init
-
-# Сборка .exe
-bunx tauri build
-```
-
-> ⚠️ Для Tauri требуется установленный [Rust](https://rustup.rs/) и Visual Studio Build Tools (на Windows).
+1. `bun run build` собирает Next.js в **standalone**-режиме — получается автономный Node.js сервер
+2. `electron-dist/app/` содержит этот сервер + статика + Prisma
+3. `electron-builder` упаковывает Electron + сервер в единый установщик
+4. При запуске .exe Electron автоматически стартует встроенный сервер и открывает окно
+5. База данных SQLite создаётся в пользовательской папке (`%APPDATA%/aLCloud/`)
 
 ---
 
@@ -186,9 +226,12 @@ aLCloud/
 │       │   └── index.ts            # Реестр провайдеров
 │       ├── store.ts                # Zustand store
 │       └── db.ts                   # Prisma клиент
+├── electron/                       # Electron обёртка
+│   ├── main.js                     # Точка входа Electron
+│   └── preload.js                  # Preload-скрипт
+├── electron-dist/                  # ⬅️ Готовые сборки (.exe, .AppImage, .dmg)
 ├── prisma/
 │   └── schema.prisma               # Схема базы данных
-├── electron/                       # Electron конфигурация
 ├── public/                         # Статические файлы
 └── package.json
 ```
@@ -207,20 +250,7 @@ aLCloud/
 | Состояние | Zustand |
 | Анимации | Framer Motion |
 | Drag & Drop | @dnd-kit |
-| Десктоп | Electron / Tauri |
-
----
-
-## 📝 Скрипты
-
-```bash
-bun run dev          # Запуск в режиме разработки
-bun run build        # Сборка production
-bun run start        # Запуск production-сервера
-bun run lint         # Проверка кода
-bun run db:push      # Применить схему БД
-bun run db:generate  # Сгенерировать Prisma клиент
-```
+| Десктоп | Electron 41 + electron-builder |
 
 ---
 
