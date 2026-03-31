@@ -1,8 +1,9 @@
 """Theme manager for CustomTkinter — Light, Dark, Custom RGB."""
 
 import customtkinter as ctk
-from customtkinter.windows.widgets.theme.theme_manager import ThemeManager as CTkThemeManager
+from customtkinter.windows.widgets.theme.theme_manager import ThemeManager as CTkTM
 import json
+import copy
 from pathlib import Path
 
 THEME_DIR = Path.home() / ".alcloud" / "themes"
@@ -23,277 +24,136 @@ DARK_COLORS = {
     "border": (80, 80, 80),
 }
 
-PRESETS = {
-    "light": LIGHT_COLORS,
-    "dark": DARK_COLORS,
-}
+PRESETS = {"light": LIGHT_COLORS, "dark": DARK_COLORS}
 
 
-def _rgb_hex(rgb: tuple[int, int, int]) -> str:
-    return f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
+def _rgb_hex(rgb: tuple) -> str:
+    return f"#{max(0,min(255,rgb[0])):02x}{max(0,min(255,rgb[1])):02x}{max(0,min(255,rgb[2])):02x}"
 
 
-def _lighter(rgb: tuple, amount: int = 15) -> tuple:
-    return tuple(min(255, c + amount) for c in rgb)
+def _lighter(rgb: tuple, a: int = 15) -> tuple:
+    return tuple(min(255, c + a) for c in rgb)
 
 
-def _darker(rgb: tuple, amount: int = 15) -> tuple:
-    return tuple(max(0, c - amount) for c in rgb)
+def _darker(rgb: tuple, a: int = 15) -> tuple:
+    return tuple(max(0, c - a) for c in rgb)
 
 
-def _build_ctk_json(name: str, colors: dict[str, tuple]) -> dict:
+def _load_builtin_theme(name: str) -> dict:
+    """Load a built-in CTk theme JSON as a base template."""
+    ctk.set_default_color_theme(name)
+    # After loading, the theme dict is in CTkTM.theme
+    return copy.deepcopy(CTkTM.theme)
+
+
+def _color_pair(light_val, dark_val) -> list[str]:
+    """Return [light_mode_value, dark_mode_value]."""
+    return [_rgb_hex(light_val), _rgb_hex(dark_val)]
+
+
+def _recolor_theme(base: dict, colors: dict[str, tuple], is_dark_mode: bool) -> dict:
+    """
+    Override colors in a theme dict.
+    Uses the base theme's keys (guaranteed correct), replaces color values.
+    """
     bg = colors["bg"]
     fg = colors["fg"]
     accent = colors["accent"]
     border = colors["border"]
 
-    return {
-        "name": name,
-        "CTk": {
-            "fg_color": [_rgb_hex(_lighter(bg, 10)), _rgb_hex(_darker(bg, 10))],
-            "menu_fg_color": _rgb_hex(_lighter(bg, 5)),
-            "menu_hover_color": _rgb_hex(accent),
-        },
-        "CTkToplevel": {
-            "fg_color": [_rgb_hex(_lighter(bg, 10)), _rgb_hex(_darker(bg, 10))],
-        },
-        "CTkFrame": {
-            "top_fg_color": [
-                _rgb_hex(_lighter(bg, 8)),
-                _rgb_hex(_darker(bg, 5)),
-            ],
-            "bottom_fg_color": [
-                _rgb_hex(_lighter(bg, 15)),
-                _rgb_hex(bg),
-            ],
-            "border_color": [
-                _rgb_hex(border),
-                _rgb_hex(border),
-            ],
-        },
-        "CTkLabel": {
-            "fg_color": "transparent",
-            "text_color": [_rgb_hex(_darker(fg, 30)), _rgb_hex(fg)],
-        },
-        "CTkButton": {
-            "fg_color": [
-                _rgb_hex(_lighter(accent, 20)),
-                _rgb_hex(_darker(accent, 20)),
-            ],
-            "hover_color": [
-                _rgb_hex(_lighter(accent, 35)),
-                _rgb_hex(_darker(accent, 5)),
-            ],
-            "border_color": [
-                _rgb_hex(border),
-                _rgb_hex(border),
-            ],
-            "text_color": [
-                _rgb_hex(bg),
-                _rgb_hex(bg),
-            ],
-        },
-        "CTkEntry": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "border_color": [
-                _rgb_hex(border),
-                _rgb_hex(border),
-            ],
-            "text_color": [_rgb_hex(fg), _rgb_hex(fg)],
-            "placeholder_text_color": [
-                _rgb_hex(_lighter(fg, 80)),
-                _rgb_hex(_darker(fg, 80)),
-            ],
-        },
-        "CTkTextbox": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "border_color": [
-                _rgb_hex(border),
-                _rgb_hex(border),
-            ],
-            "text_color": [_rgb_hex(fg), _rgb_hex(fg)],
-        },
-        "CTkScrollableFrame": {
-            "fg_color": "transparent",
-        },
-        "CTkSegmentedButton": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "selected_color": [
-                _rgb_hex(accent),
-                _rgb_hex(accent),
-            ],
-            "selected_hover_color": [
-                _rgb_hex(_lighter(accent, 20)),
-                _rgb_hex(_lighter(accent, 20)),
-            ],
-            "unselected_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "unselected_hover_color": [
-                _rgb_hex(_lighter(bg, 30)),
-                _rgb_hex(_darker(bg, 5)),
-            ],
-            "text_color": [_rgb_hex(fg), _rgb_hex(fg)],
-            "text_color_disabled": [_rgb_hex(_lighter(fg, 60)), _rgb_hex(_darker(fg, 60))],
-        },
-        "CTkTabview": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 8)),
-                _rgb_hex(_darker(bg, 5)),
-            ],
-            "top_fg_color": [
-                _rgb_hex(_lighter(bg, 15)),
-                _rgb_hex(_darker(bg, 12)),
-            ],
-            "border_color": [
-                _rgb_hex(border),
-                _rgb_hex(border),
-            ],
-            "button_color": [
-                _rgb_hex(_lighter(bg, 10)),
-                _rgb_hex(_darker(bg, 8)),
-            ],
-            "button_hover_color": [
-                _rgb_hex(_lighter(bg, 25)),
-                _rgb_hex(_darker(bg, 0)),
-            ],
-        },
-        "CTkSlider": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "progress_color": [
-                _rgb_hex(accent),
-                _rgb_hex(accent),
-            ],
-            "button_color": [
-                _rgb_hex(accent),
-                _rgb_hex(accent),
-            ],
-            "button_hover_color": [
-                _rgb_hex(_lighter(accent, 25)),
-                _rgb_hex(_lighter(accent, 25)),
-            ],
-        },
-        "CTkProgressBar": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "progress_color": [
-                _rgb_hex(accent),
-                _rgb_hex(accent),
-            ],
-            "border_color": [
-                _rgb_hex(border),
-                _rgb_hex(border),
-            ],
-        },
-        "CTkSwitch": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "progress_color": [
-                _rgb_hex(accent),
-                _rgb_hex(accent),
-            ],
-            "button_color": [
-                _rgb_hex(bg),
-                _rgb_hex(bg),
-            ],
-            "button_hover_color": [
-                _rgb_hex(_lighter(bg, 30)),
-                _rgb_hex(_lighter(bg, 30)),
-            ],
-            "text_color": [_rgb_hex(fg), _rgb_hex(fg)],
-        },
-        "CTkOptionMenu": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "button_color": [
-                _rgb_hex(_lighter(accent, 20)),
-                _rgb_hex(_darker(accent, 20)),
-            ],
-            "button_hover_color": [
-                _rgb_hex(_lighter(accent, 35)),
-                _rgb_hex(_darker(accent, 5)),
-            ],
-        },
-        "CTkComboBox": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "border_color": [
-                _rgb_hex(border),
-                _rgb_hex(border),
-            ],
-            "button_color": [
-                _rgb_hex(_lighter(accent, 20)),
-                _rgb_hex(_darker(accent, 20)),
-            ],
-            "button_hover_color": [
-                _rgb_hex(_lighter(accent, 35)),
-                _rgb_hex(_darker(accent, 5)),
-            ],
-            "text_color": [_rgb_hex(fg), _rgb_hex(fg)],
-        },
-        "CTkCheckbox": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "border_color": [
-                _rgb_hex(border),
-                _rgb_hex(border),
-            ],
-            "hover_color": [
-                _rgb_hex(_lighter(accent, 15)),
-                _rgb_hex(_lighter(accent, 15)),
-            ],
-            "checkmark_color": [_rgb_hex(bg), _rgb_hex(bg)],
-            "text_color": [_rgb_hex(fg), _rgb_hex(fg)],
-        },
-        "CTkRadioButton": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 20)),
-                _rgb_hex(_darker(bg, 15)),
-            ],
-            "border_color": [
-                _rgb_hex(border),
-                _rgb_hex(border),
-            ],
-            "hover_color": [
-                _rgb_hex(_lighter(accent, 15)),
-                _rgb_hex(_lighter(accent, 15)),
-            ],
-            "text_color": [_rgb_hex(fg), _rgb_hex(fg)],
-        },
-        "CTkDialog": {
-            "fg_color": [
-                _rgb_hex(_lighter(bg, 10)),
-                _rgb_hex(_darker(bg, 10)),
-            ],
-        },
-    }
+    # Helper: pick from (light_val, dark_val) pair based on mode
+    def cp(light_v, dark_v):
+        return dark_v if is_dark_mode else light_v
+
+    def cp_pair(light_v, dark_v):
+        return [_rgb_hex(light_v), _rgb_hex(dark_v)]
+
+    theme = copy.deepcopy(base)
+
+    for widget_key in theme:
+        if widget_key == "name":
+            continue
+        w = theme[widget_key]
+        if not isinstance(w, dict):
+            continue
+
+        bg_pair = cp_pair(_lighter(bg, 8), _darker(bg, 5))
+        fg_pair = cp_pair(_darker(fg, 30), fg)
+        accent_pair = cp_pair(_lighter(accent, 20), _darker(accent, 20))
+        border_pair = cp_pair(border, border)
+
+        # Override keys that contain "color" in their name
+        for key in list(w.keys()):
+            val = w[key]
+
+            # Skip non-color values
+            if not isinstance(val, (str, list)):
+                continue
+
+            if key == "fg_color":
+                if isinstance(val, list):
+                    w[key] = bg_pair
+                elif val == "transparent":
+                    w[key] = "transparent"
+                else:
+                    w[key] = _rgb_hex(bg)
+            elif key == "top_fg_color":
+                if isinstance(val, list):
+                    w[key] = bg_pair
+                else:
+                    w[key] = _rgb_hex(bg)
+            elif key == "bottom_fg_color":
+                if isinstance(val, list):
+                    w[key] = cp_pair(_lighter(bg, 15), bg)
+                else:
+                    w[key] = _rgb_hex(bg)
+            elif key == "text_color":
+                if isinstance(val, list):
+                    w[key] = fg_pair
+                else:
+                    w[key] = _rgb_hex(fg)
+            elif key == "border_color":
+                if isinstance(val, list):
+                    w[key] = border_pair
+                else:
+                    w[key] = _rgb_hex(border)
+            elif key == "button_color":
+                if isinstance(val, list):
+                    w[key] = accent_pair
+            elif key == "hover_color":
+                if isinstance(val, list):
+                    w[key] = cp_pair(_lighter(accent, 35), _darker(accent, 5))
+            elif key == "button_hover_color":
+                if isinstance(val, list):
+                    w[key] = cp_pair(_lighter(accent, 35), _darker(accent, 5))
+            elif key == "selected_color":
+                if isinstance(val, list):
+                    w[key] = cp_pair(accent, accent)
+            elif key == "selected_hover_color":
+                if isinstance(val, list):
+                    w[key] = cp_pair(_lighter(accent, 20), _lighter(accent, 20))
+            elif key == "progress_color":
+                if isinstance(val, list):
+                    w[key] = cp_pair(accent, accent)
+            elif key == "checkmark_color":
+                if isinstance(val, list):
+                    w[key] = cp_pair(bg, bg)
+            elif key == "button_fg_color":
+                if isinstance(val, list):
+                    w[key] = cp_pair(accent, accent)
+            elif key == "placeholder_text_color":
+                if isinstance(val, list):
+                    w[key] = cp_pair(_lighter(fg, 80), _darker(fg, 80))
+            elif key == "menu_fg_color":
+                w[key] = _rgb_hex(_lighter(bg, 5))
+            elif key == "menu_hover_color":
+                w[key] = _rgb_hex(accent)
+
+    return theme
 
 
 class ThemeManager:
-    """Manages app themes — applies CustomTkinter JSON themes."""
+    """Manages app themes — applies CustomTkinter themes."""
 
     def __init__(self):
         THEME_DIR.mkdir(parents=True, exist_ok=True)
@@ -320,27 +180,30 @@ class ThemeManager:
         else:
             colors = PRESETS.get(theme_name, DARK_COLORS)
 
-        theme_json = _build_ctk_json(f"alcloud_{theme_name}", colors)
+        is_dark = theme_name == "dark" or (
+            theme_name == "custom" and
+            (colors["bg"][0] * 299 + colors["bg"][1] * 587 + colors["bg"][2] * 114) / 1000 < 128
+        )
 
-        # Write theme JSON file
+        # 1. Load a built-in theme as base (has all required keys for this CTk version)
+        builtin = "dark-blue" if is_dark else "blue"
+        base = _load_builtin_theme(builtin)
+
+        # 2. Recolor the base theme with our colors
+        theme_json = _recolor_theme(base, colors, is_dark)
+        theme_json["name"] = f"alcloud_{theme_name}"
+
+        # 3. Write to file
         theme_path = THEME_DIR / f"alcloud_{theme_name}.json"
         with open(theme_path, "w", encoding="utf-8") as f:
             json.dump(theme_json, f, indent=2)
 
-        # Set appearance mode
-        if theme_name == "dark":
-            ctk.set_appearance_mode("dark")
-        elif theme_name == "light":
-            ctk.set_appearance_mode("light")
-        else:
-            # Custom: determine light or dark based on bg brightness
-            r, g, b = colors["bg"]
-            brightness = (r * 299 + g * 587 + b * 114) / 1000
-            ctk.set_appearance_mode("light" if brightness > 128 else "dark")
+        # 4. Set appearance mode
+        ctk.set_appearance_mode("dark" if is_dark else "light")
 
-        # Apply theme JSON
-        CTkThemeManager.theme = theme_json
-        CTkThemeManager._currently_loaded_theme = str(theme_path)
+        # 5. Apply theme
+        CTkTM.theme = theme_json
+        CTkTM._currently_loaded_theme = str(theme_path)
 
         # Save preference
         from aLCloud.database import save_setting
