@@ -1,4 +1,4 @@
-"""Connect provider panel — shown inside main window, not a new window."""
+"""Connect provider panel — inside main window."""
 
 import customtkinter as ctk
 from aLCloud.database import save_provider, update_provider_tokens
@@ -9,49 +9,54 @@ class ConnectPanel(ctk.CTkFrame):
     def __init__(self, parent, on_done=None):
         super().__init__(parent, corner_radius=0, fg_color="transparent")
         self._on_done = on_done
-        self._selected_type: str | None = None
-        self._build()
-
-    def reset(self):
-        """Reset state when panel is reopened."""
-        for w in self.winfo_children():
-            w.destroy()
         self._selected_type = None
-        self._build()
 
-    def _build(self):
-        ctk.CTkLabel(self, text="Подключить облако",
-                     font=ctk.CTkFont(size=22, weight="bold")).pack(anchor="w", padx=24, pady=(24, 4))
+        # Title (static)
+        self.title_label = ctk.CTkLabel(self, text="Подключить облако",
+                                        font=ctk.CTkFont(size=20, weight="bold"), anchor="w")
+        self.title_label.pack(anchor="w", padx=24, pady=(24, 2))
+
         ctk.CTkLabel(self, text="Выберите провайдер и введите данные",
-                     font=ctk.CTkFont(size=13), text_color="gray50").pack(anchor="w", padx=24)
+                     font=ctk.CTkFont(size=12), text_color="gray50").pack(anchor="w", padx=24)
 
+        # Provider selector
         names = [p["name"] for p in PROVIDER_INFO]
         self.provider_menu = ctk.CTkOptionMenu(
-            self, values=["— Выберите —"] + names,
-            command=self._on_provider_selected, width=500, corner_radius=8
+            self, values=["-- Выберите --"] + names,
+            command=self._on_select, width=500, corner_radius=8
         )
-        self.provider_menu.pack(anchor="w", padx=24, pady=(20, 12))
+        self.provider_menu.pack(anchor="w", padx=24, pady=(16, 12))
 
-        self.details_frame = ctk.CTkScrollableFrame(self, fg_color="transparent")
-        self.details_frame.pack(fill="both", expand=True, padx=24, pady=(0, 12))
+        # Dynamic details area
+        self.details = ctk.CTkFrame(self, fg_color="transparent")
+        self.details.pack(fill="both", expand=True, padx=24, pady=(0, 12))
 
-        self.bottom_bar = ctk.CTkFrame(self, fg_color="transparent", height=60)
-        self.bottom_bar.pack(fill="x", side="bottom", padx=24, pady=(0, 16))
-        self.bottom_bar.pack_propagate(False)
-
-        self.error_label = ctk.CTkLabel(self.bottom_bar, text="", font=ctk.CTkFont(size=12),
+        # Error label
+        self.error_label = ctk.CTkLabel(self, text="", font=ctk.CTkFont(size=12),
                                         text_color="#FF6B6B", anchor="w")
-        self.error_label.pack(side="bottom", fill="x")
+        self.error_label.pack(anchor="w", padx=24)
 
+        # Connect button
         self.connect_btn = ctk.CTkButton(
-            self.bottom_bar, text="Подключить", height=40, width=200,
+            self, text="Подключить", height=40, width=200,
             corner_radius=8, command=self._on_connect, state="disabled"
         )
-        self.connect_btn.pack(side="right")
+        self.connect_btn.pack(pady=(8, 24), padx=24, anchor="e")
 
-    def _on_provider_selected(self, value: str):
-        for w in self.details_frame.winfo_children():
+    def reset(self):
+        """Clear dynamic content, ready for reuse."""
+        self.provider_menu.set("-- Выберите --")
+        self._clear_details()
+        self.error_label.configure(text="")
+        self.connect_btn.configure(state="disabled", text="Подключить")
+        self._selected_type = None
+
+    def _clear_details(self):
+        for w in self.details.winfo_children():
             w.destroy()
+
+    def _on_select(self, value):
+        self._clear_details()
         self.error_label.configure(text="")
 
         info = None
@@ -68,62 +73,54 @@ class ConnectPanel(ctk.CTkFrame):
         self._selected_type = info["type"]
         self.connect_btn.configure(state="normal")
 
-        ctk.CTkLabel(
-            self.details_frame,
-            text=f"{info['name']}  —  Макс. размер файла: {info['max_file']}",
-            font=ctk.CTkFont(size=13, weight="bold"), anchor="w"
-        ).pack(fill="x", pady=(0, 12))
+        ctk.CTkLabel(self.details,
+                     text=f"{info['name']}  |  Макс. файл: {info['max_file']}",
+                     font=ctk.CTkFont(size=13, weight="bold"), anchor="w"
+                     ).pack(fill="x", pady=(0, 12))
 
         if info["type"] == "telegram":
-            ctk.CTkLabel(
-                self.details_frame,
-                text="Telegram подключается через номер телефона.\nВведите данные от my.telegram.org.",
-                font=ctk.CTkFont(size=12), text_color="gray50", wraplength=500, anchor="w"
-            ).pack(fill="x", pady=(0, 8))
+            ctk.CTkLabel(self.details,
+                         text="Telegram: подключение через номер телефона.\nДанные от my.telegram.org",
+                         font=ctk.CTkFont(size=12), text_color="gray50",
+                         wraplength=500, anchor="w").pack(fill="x", pady=(0, 10))
 
-            ctk.CTkLabel(self.details_frame, text="API ID", font=ctk.CTkFont(size=12, weight="bold"),
-                         anchor="w").pack(fill="x", pady=(8, 2))
-            self.api_id_entry = ctk.CTkEntry(self.details_frame, placeholder_text="12345",
-                                              width=500, height=38, corner_radius=8)
-            self.api_id_entry.pack(fill="x", pady=(0, 8))
-
-            ctk.CTkLabel(self.details_frame, text="API Hash", font=ctk.CTkFont(size=12, weight="bold"),
-                         anchor="w").pack(fill="x", pady=(4, 2))
-            self.api_hash_entry = ctk.CTkEntry(self.details_frame, placeholder_text="abc123...",
-                                                width=500, height=38, corner_radius=8)
-            self.api_hash_entry.pack(fill="x", pady=(0, 8))
-
-            ctk.CTkLabel(self.details_frame, text="Номер телефона", font=ctk.CTkFont(size=12, weight="bold"),
-                         anchor="w").pack(fill="x", pady=(4, 2))
-            self.phone_entry = ctk.CTkEntry(self.details_frame, placeholder_text="+79001234567",
-                                             width=500, height=38, corner_radius=8)
-            self.phone_entry.pack(fill="x", pady=(0, 8))
+            self.telegram_fields = {}
+            for label, key, ph in [("API ID", "api_id", "12345"),
+                                    ("API Hash", "api_hash", "abc123..."),
+                                    ("Номер телефона", "phone", "+79001234567")]:
+                ctk.CTkLabel(self.details, text=label, font=ctk.CTkFont(size=12, weight="bold"),
+                             anchor="w").pack(fill="x", pady=(6, 2))
+                e = ctk.CTkEntry(self.details, placeholder_text=ph, height=36, corner_radius=8)
+                e.pack(fill="x", pady=(0, 6))
+                self.telegram_fields[key] = e
         else:
-            ctk.CTkLabel(self.details_frame, text="Client ID",
-                         font=ctk.CTkFont(size=12, weight="bold"), anchor="w").pack(fill="x", pady=(4, 2))
-            self.client_id_entry = ctk.CTkEntry(
-                self.details_frame, placeholder_text="Ваш Client ID",
-                width=500, height=38, corner_radius=8
-            )
-            self.client_id_entry.pack(fill="x", pady=(0, 8))
+            self.oauth_fields = {}
+
+            ctk.CTkLabel(self.details, text="Client ID",
+                         font=ctk.CTkFont(size=12, weight="bold"), anchor="w"
+                         ).pack(fill="x", pady=(6, 2))
+            e1 = ctk.CTkEntry(self.details, placeholder_text="Ваш Client ID", height=36, corner_radius=8)
+            e1.pack(fill="x", pady=(0, 6))
+            self.oauth_fields["client_id"] = e1
 
             if info["needs_secret"]:
-                ctk.CTkLabel(self.details_frame, text="Client Secret",
-                             font=ctk.CTkFont(size=12, weight="bold"), anchor="w").pack(fill="x", pady=(4, 2))
-                self.client_secret_entry = ctk.CTkEntry(
-                    self.details_frame, placeholder_text="Ваш Client Secret",
-                    width=500, height=38, corner_radius=8, show="*"
-                )
-                self.client_secret_entry.pack(fill="x", pady=(0, 8))
+                ctk.CTkLabel(self.details, text="Client Secret",
+                             font=ctk.CTkFont(size=12, weight="bold"), anchor="w"
+                             ).pack(fill="x", pady=(6, 2))
+                e2 = ctk.CTkEntry(self.details, placeholder_text="Ваш Client Secret",
+                                   height=36, corner_radius=8, show="*")
+                e2.pack(fill="x", pady=(0, 6))
+                self.oauth_fields["client_secret"] = e2
 
     def _on_connect(self):
         if not self._selected_type:
             return
 
+        # Telegram flow
         if self._selected_type == "telegram":
-            api_id = self.api_id_entry.get().strip()
-            api_hash = self.api_hash_entry.get().strip()
-            phone = self.phone_entry.get().strip()
+            api_id = self.telegram_fields["api_id"].get().strip()
+            api_hash = self.telegram_fields["api_hash"].get().strip()
+            phone = self.telegram_fields["phone"].get().strip()
             if not api_id or not api_hash or not phone:
                 self.error_label.configure(text="Заполните все поля")
                 return
@@ -133,8 +130,9 @@ class ConnectPanel(ctk.CTkFrame):
                 self._on_done()
             return
 
-        client_id = self.client_id_entry.get().strip() if hasattr(self, "client_id_entry") else ""
-        client_secret = self.client_secret_entry.get().strip() if hasattr(self, "client_secret_entry") else ""
+        # OAuth flow
+        client_id = self.oauth_fields["client_id"].get().strip()
+        client_secret = self.oauth_fields["client_secret"].get().strip() if "client_secret" in self.oauth_fields else ""
 
         if not client_id:
             self.error_label.configure(text="Введите Client ID")
